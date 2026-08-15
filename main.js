@@ -167,11 +167,10 @@
 
     tl.to(eyeWrap, { opacity: 1, scale: 1, duration: 1.1, ease: "power2.out" })
       .to(eyeWrap, { scaleY: 1.025, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, "<0.2")
-      // slow organic blink
       .to(eyeWrap, { scaleY: 0.08, duration: 0.16, ease: "power1.in" }, "+=0.5")
       .to(eyeWrap, { scaleY: 1, duration: 0.28, ease: "power2.out" })
       .to(introText, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, "-=0.1")
-      .to({}, { duration: 0.9 }); // hold before dismiss
+      .to({}, { duration: 0.9 });
   }
 
   function skipIntro() {
@@ -197,7 +196,6 @@
     const delay = 2600 + Math.random() * 3800;
     setTimeout(() => {
       blink(target);
-      // occasionally do a quick double-blink for a wink-like feel
       if (Math.random() < 0.25) {
         setTimeout(() => blink(target), 320);
       }
