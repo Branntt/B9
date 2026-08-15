@@ -96,7 +96,7 @@
   resize();
   requestAnimationFrame(tick);
 
-  /* ---------- subtle audio chime (synthesized, no asset needed) ---------- */
+  /* ---------- audio (synthesized, no assets) ---------- */
 
   let audioCtx = null;
   let audioUnlocked = false;
@@ -106,7 +106,7 @@
     try {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       audioUnlocked = true;
-    } catch (e) { /* audio unavailable, silently skip */ }
+    } catch (e) { /* audio unavailable */ }
   }
 
   function playChime() {
@@ -123,6 +123,53 @@
     osc.connect(gain).connect(audioCtx.destination);
     osc.start(now);
     osc.stop(now + 1.5);
+  }
+
+  function playTick() {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(1100, now);
+    osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.15);
+  }
+
+  function playMiss() {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(300, now);
+    osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
+    gain.gain.setValueAtTime(0.04, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.15);
+  }
+
+  function playCelebrate() {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    [523, 659, 784, 1047].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, now + i * 0.1);
+      gain.gain.linearRampToValueAtTime(0.05, now + i * 0.1 + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.1 + 0.4);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(now + i * 0.1);
+      osc.stop(now + i * 0.1 + 0.5);
+    });
   }
 
   window.addEventListener("pointerdown", unlockAudio, { once: true, passive: true });
@@ -167,11 +214,10 @@
 
     tl.to(eyeWrap, { opacity: 1, scale: 1, duration: 1.1, ease: "power2.out" })
       .to(eyeWrap, { scaleY: 1.025, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, "<0.2")
-      // slow organic blink
       .to(eyeWrap, { scaleY: 0.08, duration: 0.16, ease: "power1.in" }, "+=0.5")
       .to(eyeWrap, { scaleY: 1, duration: 0.28, ease: "power2.out" })
       .to(introText, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, "-=0.1")
-      .to({}, { duration: 0.9 }); // hold before dismiss
+      .to({}, { duration: 0.9 });
   }
 
   function skipIntro() {
@@ -180,7 +226,7 @@
     revealContent();
   }
 
-  /* ---------- idle blink loop for the persistent header eye ---------- */
+  /* ---------- idle blink loop ---------- */
 
   function blink(target) {
     gsap.to(target, {
@@ -197,7 +243,6 @@
     const delay = 2600 + Math.random() * 3800;
     setTimeout(() => {
       blink(target);
-      // occasionally do a quick double-blink for a wink-like feel
       if (Math.random() < 0.25) {
         setTimeout(() => blink(target), 320);
       }
@@ -236,28 +281,37 @@
   const HABITS_KEY = "bacu_habits";
   const CHECKS_KEY = "bacu_checks";
 
+  /* --- element references --- */
+
   const habitsView = document.getElementById("habits-view");
   const btnHabits = document.getElementById("btn-habits");
   const btnBack = document.getElementById("habits-back");
+  const habitsGreeting = document.getElementById("habits-greeting");
+
+  // Quick Check
+  const qcList = document.getElementById("qc-list");
+  const qcRingFill = document.getElementById("qc-ring-fill");
+  const qcRingPct = document.getElementById("qc-ring-pct");
+  const qcDate = document.getElementById("qc-date");
+  const qcMsg = document.getElementById("qc-msg");
+  const RING_C = 2 * Math.PI * 52; // circumference ≈ 326.73
+
+  // Add habit
+  const habitsInput = document.getElementById("habits-input");
+  const habitsAddBtn = document.getElementById("habits-add-btn");
+
+  // Week view (inside collapsible)
+  const toggleWeek = document.getElementById("toggle-week");
+  const weekBody = document.getElementById("week-body");
   const habitsWeekLabel = document.getElementById("habits-week");
   const habitsDaysEl = document.getElementById("habits-days");
   const habitsList = document.getElementById("habits-list");
-  const habitsInput = document.getElementById("habits-input");
-  const habitsAddBtn = document.getElementById("habits-add-btn");
-  const progressFill = document.getElementById("habits-progress-fill");
-  const progressText = document.getElementById("habits-progress-text");
   const weekPrev = document.getElementById("week-prev");
   const weekNext = document.getElementById("week-next");
 
-  // Today focus elements
-  const todayDateEl = document.getElementById("today-date");
-  const statDoneEl = document.getElementById("stat-done");
-  const statPendingEl = document.getElementById("stat-pending");
-  const statMissedEl = document.getElementById("stat-missed");
-  const todayMsgEl = document.getElementById("today-msg");
-  const todayFocusEl = document.getElementById("today-focus");
-
-  // Analysis elements
+  // Analysis (inside collapsible)
+  const toggleAnalysis = document.getElementById("toggle-analysis");
+  const analysisBody = document.getElementById("analysis-body");
   const analysisSectionEl = document.getElementById("analysis-section");
   const analConsistency = document.getElementById("anal-consistency");
   const analBestDay = document.getElementById("anal-best-day");
@@ -266,12 +320,17 @@
   const analysisHabitsEl = document.getElementById("analysis-habits");
   const analysisInsightEl = document.getElementById("analysis-insight");
 
+  // Confetti
+  const confettiCanvas = document.getElementById("confetti-canvas");
+  const confettiCtx = confettiCanvas ? confettiCanvas.getContext("2d") : null;
+
   const DAY_NAMES = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
   const DAY_NAMES_FULL = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
   const MONTH_NAMES = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
   const MONTH_NAMES_FULL = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
   let weekOffset = 0;
+  let lastCelebratedDate = null;
 
   /* --- data helpers --- */
 
@@ -293,8 +352,8 @@
     localStorage.setItem(CHECKS_KEY, JSON.stringify(checks));
   }
 
-  function ck(habitId, ds) {
-    return `${habitId}::${ds}`;
+  function ck(habitId, dateStr) {
+    return `${habitId}::${dateStr}`;
   }
 
   function ds(d) {
@@ -307,6 +366,7 @@
   function todayStr() { return ds(new Date()); }
 
   /* --- seed default habits on first visit --- */
+
   const SEED_KEY = "bacu_habits_seeded";
   if (!localStorage.getItem(SEED_KEY)) {
     const defaultHabits = [
@@ -321,7 +381,6 @@
       { id: "h09", name: "1h sin redes sociales (enfoque creativo)", created: todayStr() },
       { id: "h10", name: "Journaling / Reflexión 5 min", created: todayStr() },
     ];
-    // Only seed if user has no habits yet
     if (loadHabits().length === 0) {
       saveHabits(defaultHabits);
     }
@@ -346,22 +405,56 @@
     return days;
   }
 
+  /* --- time-aware greeting --- */
+
+  function getGreeting() {
+    const h = new Date().getHours();
+    if (h >= 5 && h < 12) return "Buenos días ☀️";
+    if (h >= 12 && h < 18) return "Buenas tardes 🌤️";
+    return "Buenas noches 🌙";
+  }
+
+  /* --- streak helpers --- */
+
+  function getStreak(habitId, checks) {
+    let streak = 0;
+    const d = new Date();
+    for (let s = 0; s < 365; s++) {
+      const sd = new Date(d);
+      sd.setDate(d.getDate() - s);
+      const key = ck(habitId, ds(sd));
+      if (checks[key] === true) {
+        streak++;
+      } else if (s > 0) {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  function getStreakBadge(streak) {
+    if (streak >= 30) return "👑 " + streak + "d";
+    if (streak >= 14) return "💎 " + streak + "d";
+    if (streak >= 7)  return "⚡ " + streak + "d";
+    if (streak >= 1)  return "🔥 " + streak + "d";
+    return "";
+  }
+
   /* --- motivational messages --- */
 
   function getTodayMessage(done, total, missed) {
     if (total === 0) return "Agrega hábitos y empieza a construir tu mejor versión 🌱";
     const pct = total > 0 ? done / total : 0;
-    if (done === total && total > 0) return "¡Día perfecto! Todos los hábitos cumplidos. Eres imparable 💪🔥";
-    if (pct >= 0.7) return "Vas muy bien hoy, sigue así. La constancia te transforma ⚡";
-    if (missed > 0 && done === 0) return "Día difícil, pero aún puedes cambiar la historia. Un hábito a la vez 🌿";
-    if (missed > 0) return "Hay hábitos pendientes. Cada uno que completes es una victoria 🎯";
+    if (done === total && total > 0) return "¡Día perfecto! Todos los hábitos cumplidos 💪🔥";
+    if (pct >= 0.7) return "Vas muy bien hoy, sigue así ⚡";
+    if (missed > 0 && done === 0) return "Día difícil, pero puedes cambiar la historia 🌿";
+    if (missed > 0) return "Hay pendientes. Cada uno que completes es una victoria 🎯";
     if (done === 0) return "Tu día está empezando. ¿Cuál hábito atacas primero? 👊";
     return "Buen progreso. No pares, el esfuerzo acumula 🔋";
   }
 
   function getWeekInsight(consistency, bestDayIdx, worstDayIdx, vsLastPct, habits, checks, days) {
     const parts = [];
-
     if (consistency >= 90) {
       parts.push("<strong>Semana excepcional.</strong> Tu consistencia está por encima del 90%. Mantén este ritmo.");
     } else if (consistency >= 70) {
@@ -371,76 +464,233 @@
     } else if (consistency > 0) {
       parts.push(`<strong>Semana para reflexionar.</strong> Solo ${consistency}% de consistencia. Empieza con un hábito fácil mañana.`);
     }
-
     if (bestDayIdx >= 0 && worstDayIdx >= 0 && bestDayIdx !== worstDayIdx) {
       parts.push(`Tu mejor día fue <strong>${DAY_NAMES_FULL[bestDayIdx]}</strong> y el más flojo <strong>${DAY_NAMES_FULL[worstDayIdx]}</strong>.`);
     }
-
     if (vsLastPct > 0) {
-      parts.push(`📈 Mejoraste <strong>${vsLastPct}%</strong> respecto a la semana pasada. ¡Sigue creciendo!`);
+      parts.push(`📈 Mejoraste <strong>${vsLastPct}%</strong> respecto a la semana pasada.`);
     } else if (vsLastPct < 0) {
-      parts.push(`📉 Bajaste <strong>${Math.abs(vsLastPct)}%</strong> vs la semana pasada. No te castigues: analiza y ajusta.`);
+      parts.push(`📉 Bajaste <strong>${Math.abs(vsLastPct)}%</strong> vs la semana pasada. Analiza y ajusta.`);
     }
-
-    // Find weakest habit
     if (habits.length > 1) {
       let worstHabit = null;
       let worstRate = 101;
-      habits.forEach((h) => {
+      const today = todayStr();
+      habits.forEach((hab) => {
         let hDone = 0, hTotal = 0;
-        const today = todayStr();
         days.forEach((d) => {
           const dStr = ds(d);
-          if (dStr <= today) {
-            hTotal++;
-            if (checks[ck(h.id, dStr)] === true) hDone++;
-          }
+          if (dStr <= today) { hTotal++; if (checks[ck(hab.id, dStr)] === true) hDone++; }
         });
         const rate = hTotal > 0 ? Math.round((hDone / hTotal) * 100) : 0;
-        if (rate < worstRate) { worstRate = rate; worstHabit = h; }
+        if (rate < worstRate) { worstRate = rate; worstHabit = hab; }
       });
       if (worstHabit && worstRate < 50) {
-        parts.push(`💡 <strong>"${worstHabit.name}"</strong> es tu hábito más débil esta semana (${worstRate}%). Enfócate ahí.`);
+        parts.push(`💡 <strong>"${worstHabit.name}"</strong> es tu hábito más débil (${worstRate}%). Enfócate ahí.`);
       }
     }
-
     return parts.join(" ");
   }
 
-  /* --- render today focus --- */
+  /* --- confetti system --- */
 
-  function renderTodayFocus(habits, checks) {
-    const now = new Date();
-    const dayIdx = (now.getDay() + 6) % 7; // 0=Mon
-    const today = todayStr();
+  let confettiParticles = [];
+  let confettiRunning = false;
 
-    todayDateEl.textContent = `${DAY_NAMES_FULL[dayIdx]} ${now.getDate()} de ${MONTH_NAMES_FULL[now.getMonth()]}`;
+  function launchConfetti() {
+    if (!confettiCanvas || !confettiCtx) return;
+    const dpi = Math.min(window.devicePixelRatio || 1, 2);
+    confettiCanvas.width = window.innerWidth * dpi;
+    confettiCanvas.height = window.innerHeight * dpi;
+    confettiCanvas.style.width = window.innerWidth + "px";
+    confettiCanvas.style.height = window.innerHeight + "px";
 
-    if (habits.length === 0) {
-      statDoneEl.querySelector(".today-stat-num").textContent = "—";
-      statPendingEl.querySelector(".today-stat-num").textContent = "—";
-      statMissedEl.querySelector(".today-stat-num").textContent = "—";
-      todayMsgEl.textContent = getTodayMessage(0, 0, 0);
-      return { done: 0, pending: 0, missed: 0 };
+    const colors = ["#5CB08A", "#3E8C6F", "#e0b94f", "#F5F3ED", "#88D4AB", "#7FD1AE"];
+    confettiParticles = Array.from({ length: 70 }, () => ({
+      x: Math.random() * confettiCanvas.width,
+      y: -20 - Math.random() * 300,
+      w: 4 + Math.random() * 5,
+      h: 2 + Math.random() * 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vy: 2 + Math.random() * 4,
+      vx: (Math.random() - 0.5) * 5,
+      rot: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 10,
+      alive: true,
+    }));
+
+    if (!confettiRunning) {
+      confettiRunning = true;
+      tickConfetti();
     }
-
-    let done = 0, pending = 0, missed = 0;
-    habits.forEach((h) => {
-      const key = ck(h.id, today);
-      if (checks[key] === true) done++;
-      else if (checks[key] === false) missed++;
-      else pending++;
-    });
-
-    statDoneEl.querySelector(".today-stat-num").textContent = done;
-    statPendingEl.querySelector(".today-stat-num").textContent = pending;
-    statMissedEl.querySelector(".today-stat-num").textContent = missed;
-    todayMsgEl.textContent = getTodayMessage(done, habits.length, missed);
-
-    return { done, pending, missed };
   }
 
-  /* --- render analysis --- */
+  function tickConfetti() {
+    if (!confettiCtx) return;
+    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    let alive = false;
+
+    for (const p of confettiParticles) {
+      if (!p.alive) continue;
+      alive = true;
+      p.y += p.vy;
+      p.x += p.vx;
+      p.rot += p.rotSpeed;
+      p.vy += 0.1;
+      if (p.y > confettiCanvas.height + 30) { p.alive = false; continue; }
+
+      confettiCtx.save();
+      confettiCtx.translate(p.x, p.y);
+      confettiCtx.rotate((p.rot * Math.PI) / 180);
+      confettiCtx.fillStyle = p.color;
+      confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      confettiCtx.restore();
+    }
+
+    if (alive) {
+      requestAnimationFrame(tickConfetti);
+    } else {
+      confettiRunning = false;
+      confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    }
+  }
+
+  /* --- collapsible toggles --- */
+
+  function setupCollapse(btn, body) {
+    if (!btn || !body) return;
+    btn.addEventListener("click", () => {
+      const opening = btn.classList.toggle("is-open");
+      body.classList.toggle("is-open", opening);
+    });
+  }
+
+  setupCollapse(toggleWeek, weekBody);
+  setupCollapse(toggleAnalysis, analysisBody);
+
+  /* ---------- render: Quick Check (today) ---------- */
+
+  function renderQuickCheck(habits, checks) {
+    const now = new Date();
+    const dayIdx = (now.getDay() + 6) % 7;
+    const today = todayStr();
+
+    // Greeting
+    if (habitsGreeting) habitsGreeting.textContent = getGreeting();
+
+    // Date
+    qcDate.textContent = `${DAY_NAMES_FULL[dayIdx]} ${now.getDate()} de ${MONTH_NAMES_FULL[now.getMonth()]}`;
+
+    // Count states
+    let done = 0, missed = 0;
+    habits.forEach((hab) => {
+      const key = ck(hab.id, today);
+      if (checks[key] === true) done++;
+      else if (checks[key] === false) missed++;
+    });
+
+    const total = habits.length;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    // Ring
+    const offset = RING_C - (RING_C * pct / 100);
+    qcRingFill.style.strokeDashoffset = offset;
+    qcRingPct.textContent = pct;
+
+    // Message
+    qcMsg.textContent = getTodayMessage(done, total, missed);
+
+    // List
+    qcList.innerHTML = "";
+
+    if (total === 0) {
+      qcList.innerHTML = `
+        <li class="habits-empty">
+          <span class="habits-empty-icon">🌱</span>
+          Agrega tu primer hábito para empezar
+        </li>`;
+      return;
+    }
+
+    habits.forEach((hab) => {
+      const key = ck(hab.id, today);
+      const isChecked = checks[key] === true;
+      const isMissed = checks[key] === false;
+      const streak = getStreak(hab.id, checks);
+
+      const li = document.createElement("li");
+      li.className = "qc-item";
+      if (isChecked) li.classList.add("qc-done");
+      else if (isMissed) li.classList.add("qc-missed");
+
+      const circle = document.createElement("span");
+      circle.className = "qc-check";
+      circle.textContent = isChecked ? "✓" : isMissed ? "✗" : "";
+
+      const name = document.createElement("span");
+      name.className = "qc-name";
+      name.textContent = hab.name;
+
+      li.appendChild(circle);
+      li.appendChild(name);
+
+      if (streak > 0) {
+        const badge = document.createElement("span");
+        badge.className = "qc-badge";
+        badge.textContent = getStreakBadge(streak);
+        li.appendChild(badge);
+      }
+
+      li.addEventListener("click", () => {
+        const c = loadChecks();
+        let nextState;
+        if (c[key] === true) {
+          c[key] = false;
+          nextState = "missed";
+        } else if (c[key] === false) {
+          delete c[key];
+          nextState = "clear";
+        } else {
+          c[key] = true;
+          nextState = "done";
+        }
+        saveChecks(c);
+
+        // Sound feedback
+        if (nextState === "done") playTick();
+        else if (nextState === "missed") playMiss();
+
+        // GSAP animation
+        if (window.gsap) {
+          if (nextState === "done") {
+            gsap.fromTo(li, { scale: 1.06 }, { scale: 1, duration: 0.4, ease: "back.out(1.7)" });
+          } else if (nextState === "missed") {
+            gsap.fromTo(li, { x: -3 }, { x: 0, duration: 0.3, ease: "elastic.out(1, 0.3)" });
+          }
+        }
+
+        renderAll();
+
+        // Celebration check
+        if (nextState === "done") {
+          const updatedChecks = loadChecks();
+          let allDone = habits.length > 0;
+          habits.forEach((h) => {
+            if (updatedChecks[ck(h.id, today)] !== true) allDone = false;
+          });
+          if (allDone && lastCelebratedDate !== today) {
+            lastCelebratedDate = today;
+            playCelebrate();
+            launchConfetti();
+          }
+        }
+      });
+
+      qcList.appendChild(li);
+    });
+  }
+
+  /* ---------- render: Analysis ---------- */
 
   function renderAnalysis(habits, checks, days) {
     const today = todayStr();
@@ -451,7 +701,6 @@
     }
     analysisSectionEl.classList.remove("hidden");
 
-    // Weekly stats
     let weekDone = 0, weekTotal = 0;
     const dayScores = [0, 0, 0, 0, 0, 0, 0];
     const dayTotals = [0, 0, 0, 0, 0, 0, 0];
@@ -459,10 +708,10 @@
     days.forEach((d, i) => {
       const dStr = ds(d);
       if (dStr > today) return;
-      habits.forEach((h) => {
+      habits.forEach((hab) => {
         dayTotals[i]++;
         weekTotal++;
-        if (checks[ck(h.id, dStr)] === true) {
+        if (checks[ck(hab.id, dStr)] === true) {
           dayScores[i]++;
           weekDone++;
         }
@@ -473,7 +722,6 @@
     analConsistency.textContent = `${consistency}%`;
     analTotal.textContent = `${weekDone}/${weekTotal}`;
 
-    // Best day
     let bestDayIdx = -1, bestDayRate = -1;
     let worstDayIdx = -1, worstDayRate = 101;
     dayScores.forEach((score, i) => {
@@ -490,9 +738,9 @@
     lastWeekDays.forEach((d) => {
       const dStr = ds(d);
       if (dStr > today) return;
-      habits.forEach((h) => {
+      habits.forEach((hab) => {
         lastTotal++;
-        if (checks[ck(h.id, dStr)] === true) lastDone++;
+        if (checks[ck(hab.id, dStr)] === true) lastDone++;
       });
     });
 
@@ -504,6 +752,7 @@
     }
     if (lastTotal === 0) {
       analVsLast.textContent = "—";
+      analVsLast.style.color = "";
     } else if (vsLastPct > 0) {
       analVsLast.textContent = `+${vsLastPct}%`;
       analVsLast.style.color = "var(--green-bright)";
@@ -517,13 +766,13 @@
 
     // Per-habit bars
     analysisHabitsEl.innerHTML = "";
-    habits.forEach((h) => {
+    habits.forEach((hab) => {
       let hDone = 0, hTotal = 0;
       days.forEach((d) => {
         const dStr = ds(d);
         if (dStr <= today) {
           hTotal++;
-          if (checks[ck(h.id, dStr)] === true) hDone++;
+          if (checks[ck(hab.id, dStr)] === true) hDone++;
         }
       });
       const pct = hTotal > 0 ? Math.round((hDone / hTotal) * 100) : 0;
@@ -531,9 +780,9 @@
       const row = document.createElement("div");
       row.className = "analysis-habit-row";
 
-      const name = document.createElement("span");
-      name.className = "analysis-habit-name";
-      name.textContent = h.name;
+      const nameEl = document.createElement("span");
+      nameEl.className = "analysis-habit-name";
+      nameEl.textContent = hab.name;
 
       const barWrap = document.createElement("div");
       barWrap.className = "analysis-habit-bar";
@@ -548,17 +797,16 @@
       pctEl.textContent = `${pct}%`;
       pctEl.style.color = pct >= 70 ? "var(--green-bright)" : pct >= 40 ? "#e0b94f" : "#e07a5f";
 
-      row.appendChild(name);
+      row.appendChild(nameEl);
       row.appendChild(barWrap);
       row.appendChild(pctEl);
       analysisHabitsEl.appendChild(row);
     });
 
-    // Insight
     analysisInsightEl.innerHTML = getWeekInsight(consistency, bestDayIdx, worstDayIdx, vsLastPct, habits, checks, days);
   }
 
-  /* --- render --- */
+  /* ---------- render: Week header & day columns ---------- */
 
   function renderWeekHeader(days) {
     const first = days[0];
@@ -566,12 +814,9 @@
     const fMonth = MONTH_NAMES[first.getMonth()];
     const lMonth = MONTH_NAMES[last.getMonth()];
     const year = last.getFullYear();
-
-    if (fMonth === lMonth) {
-      habitsWeekLabel.textContent = `${first.getDate()}–${last.getDate()} ${fMonth} ${year}`;
-    } else {
-      habitsWeekLabel.textContent = `${first.getDate()} ${fMonth} – ${last.getDate()} ${lMonth} ${year}`;
-    }
+    habitsWeekLabel.textContent = fMonth === lMonth
+      ? `${first.getDate()}–${last.getDate()} ${fMonth} ${year}`
+      : `${first.getDate()} ${fMonth} – ${last.getDate()} ${lMonth} ${year}`;
   }
 
   function renderDayColumns(days) {
@@ -582,73 +827,44 @@
       col.className = "habits-day-col";
       if (ds(d) === today) col.classList.add("is-today");
 
-      const name = document.createElement("span");
-      name.className = "habits-day-name";
-      name.textContent = DAY_NAMES[i];
+      const nameEl = document.createElement("span");
+      nameEl.className = "habits-day-name";
+      nameEl.textContent = DAY_NAMES[i];
 
       const num = document.createElement("span");
       num.className = "habits-day-num";
       num.textContent = d.getDate();
 
-      col.appendChild(name);
+      col.appendChild(nameEl);
       col.appendChild(num);
       habitsDaysEl.appendChild(col);
     });
   }
 
-  function renderHabits() {
-    const habits = loadHabits();
-    const checks = loadChecks();
-    const days = getWeekDates(weekOffset);
-    const today = todayStr();
+  /* ---------- render: Week view (grid inside collapsible) ---------- */
 
+  function renderWeekView(habits, checks, days) {
     renderWeekHeader(days);
     renderDayColumns(days);
 
-    // Today focus (only on current week)
-    if (weekOffset === 0) {
-      todayFocusEl.style.display = "";
-      renderTodayFocus(habits, checks);
-    } else {
-      todayFocusEl.style.display = "none";
-    }
-
+    const today = todayStr();
     habitsList.innerHTML = "";
 
     if (habits.length === 0) {
       habitsList.innerHTML = `
         <li class="habits-empty">
           <span class="habits-empty-icon">🌱</span>
-          Agrega tu primer hábito para empezar a trackear tu bienestar
+          Agrega tu primer hábito
         </li>`;
-      progressFill.style.width = "0%";
-      progressText.textContent = "0%";
-      analysisSectionEl.classList.add("hidden");
       return;
     }
-
-    let totalChecks = 0;
-    let totalPossible = 0;
 
     habits.forEach((habit) => {
       const li = document.createElement("li");
       li.className = "habit-item";
 
-      // count streak
-      let streak = 0;
-      const streakDate = new Date();
-      for (let s = 0; s < 365; s++) {
-        const sd = new Date(streakDate);
-        sd.setDate(streakDate.getDate() - s);
-        const key = ck(habit.id, ds(sd));
-        if (checks[key] === true) {
-          streak++;
-        } else if (s > 0) {
-          break;
-        }
-      }
+      const streak = getStreak(habit.id, checks);
 
-      // per-habit week rate
       let hWeekDone = 0, hWeekTotal = 0;
       days.forEach((d) => {
         const dStr = ds(d);
@@ -668,7 +884,7 @@
 
       const streakEl = document.createElement("span");
       streakEl.className = "habit-streak";
-      streakEl.textContent = streak > 0 ? `🔥 ${streak}d` : "";
+      streakEl.textContent = getStreakBadge(streak);
 
       const delBtn = document.createElement("button");
       delBtn.className = "habit-delete";
@@ -679,7 +895,7 @@
         if (confirm(`¿Eliminar "${habit.name}"?`)) {
           const h = loadHabits().filter((hb) => hb.id !== habit.id);
           saveHabits(h);
-          renderHabits();
+          renderAll();
         }
       });
 
@@ -704,24 +920,18 @@
         else if (isMissed) btn.classList.add("missed");
         if (isToday) btn.classList.add("is-today");
 
-        if (dStr <= today) {
-          totalPossible++;
-          if (isChecked) totalChecks++;
-        }
-
         btn.addEventListener("click", () => {
           const c = loadChecks();
           if (c[key] === true) { c[key] = false; }
           else if (c[key] === false) { delete c[key]; }
           else { c[key] = true; }
           saveChecks(c);
-          renderHabits();
+          renderAll();
         });
 
         checksRow.appendChild(btn);
       });
 
-      // mini completion bar per habit
       const rateWrap = document.createElement("div");
       rateWrap.className = "habit-rate-wrap";
 
@@ -747,13 +957,17 @@
       li.appendChild(rateWrap);
       habitsList.appendChild(li);
     });
+  }
 
-    // update overall progress
-    const pct = totalPossible > 0 ? Math.round((totalChecks / totalPossible) * 100) : 0;
-    progressFill.style.width = `${pct}%`;
-    progressText.textContent = `${pct}%`;
+  /* ---------- render all ---------- */
 
-    // render analysis
+  function renderAll() {
+    const habits = loadHabits();
+    const checks = loadChecks();
+    const days = getWeekDates(weekOffset);
+
+    renderQuickCheck(habits, checks);
+    renderWeekView(habits, checks, days);
     renderAnalysis(habits, checks, days);
   }
 
@@ -770,7 +984,7 @@
     });
     saveHabits(habits);
     habitsInput.value = "";
-    renderHabits();
+    renderAll();
     habitsInput.focus();
   }
 
@@ -783,7 +997,7 @@
 
   function openHabits() {
     weekOffset = 0;
-    renderHabits();
+    renderAll();
     habitsView.setAttribute("aria-hidden", "false");
     content.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "hidden";
@@ -798,8 +1012,8 @@
   btnHabits.addEventListener("click", openHabits);
   btnBack.addEventListener("click", closeHabits);
 
-  weekPrev.addEventListener("click", () => { weekOffset--; renderHabits(); });
+  weekPrev.addEventListener("click", () => { weekOffset--; renderAll(); });
   weekNext.addEventListener("click", () => {
-    if (weekOffset < 0) { weekOffset++; renderHabits(); }
+    if (weekOffset < 0) { weekOffset++; renderAll(); }
   });
 })();
