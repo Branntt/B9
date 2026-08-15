@@ -66,11 +66,6 @@
       <span class="card-arrow" aria-hidden="true">↗</span>
     </a>
 
-    <button class="card card--habits" id="btn-habits" type="button">
-      <span class="card-label">Mis Hábitos</span>
-      <span class="card-sub">Checklist semanal</span>
-      <span class="card-arrow" aria-hidden="true">→</span>
-    </button>
   </nav>
 
   <footer class="hub-footer">
@@ -78,103 +73,6 @@
   </footer>
 </main>
 
-<!-- ============ HABITS VIEW ============ -->
-<section id="habits-view" class="habits-view" aria-hidden="true">
-  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
-
-  <header class="habits-header">
-    <button class="habits-back" id="habits-back" type="button" aria-label="Volver">
-      <span aria-hidden="true">←</span>
-    </button>
-    <h2 class="habits-title" id="habits-greeting">Bienestar</h2>
-  </header>
-
-  <!-- ── TODAY QUICK CHECK (primary interface) ── -->
-  <div class="qc-section" id="qc-section">
-    <div class="qc-hero">
-      <div class="qc-ring-wrap">
-        <svg class="qc-ring" viewBox="0 0 120 120">
-          <circle class="qc-ring-bg" cx="60" cy="60" r="52" />
-          <circle class="qc-ring-fill" id="qc-ring-fill" cx="60" cy="60" r="52" />
-        </svg>
-        <div class="qc-ring-text">
-          <span class="qc-ring-pct" id="qc-ring-pct">0</span>
-          <span class="qc-ring-label">%</span>
-        </div>
-      </div>
-      <div class="qc-hero-info">
-        <div class="qc-date" id="qc-date"></div>
-        <p class="qc-msg" id="qc-msg"></p>
-      </div>
-    </div>
-
-    <ul class="qc-list" id="qc-list"></ul>
-  </div>
-
-  <!-- ── ADD HABIT ── -->
-  <div class="habits-add-wrap">
-    <input class="habits-input" id="habits-input" type="text" placeholder="Nuevo hábito…" maxlength="60" autocomplete="off">
-    <button class="habits-add-btn" id="habits-add-btn" type="button">+</button>
-  </div>
-
-  <!-- ── WEEK VIEW (collapsible) ── -->
-  <button class="collapse-toggle" id="toggle-week" type="button">
-    <span>Ver semana completa</span>
-    <span class="collapse-arrow">›</span>
-  </button>
-
-  <div class="collapse-body" id="week-body">
-    <div class="habits-week-nav">
-      <button class="habits-week-btn" id="week-prev" type="button" aria-label="Semana anterior">‹</button>
-      <div class="habits-days" id="habits-days"></div>
-      <button class="habits-week-btn" id="week-next" type="button" aria-label="Semana siguiente">›</button>
-    </div>
-    <span class="habits-week" id="habits-week"></span>
-    <ul class="habits-list" id="habits-list"></ul>
-  </div>
-
-  <!-- ── WEEKLY ANALYSIS (collapsible) ── -->
-  <button class="collapse-toggle" id="toggle-analysis" type="button">
-    <span>Análisis semanal</span>
-    <span class="collapse-arrow">›</span>
-  </button>
-
-  <div class="collapse-body" id="analysis-body">
-    <div class="analysis-section" id="analysis-section">
-      <div class="analysis-grid" id="analysis-grid">
-        <div class="analysis-card">
-          <span class="analysis-card-icon">📊</span>
-          <span class="analysis-card-value" id="anal-consistency">—</span>
-          <span class="analysis-card-label">Consistencia</span>
-        </div>
-        <div class="analysis-card">
-          <span class="analysis-card-icon">🏆</span>
-          <span class="analysis-card-value" id="anal-best-day">—</span>
-          <span class="analysis-card-label">Mejor día</span>
-        </div>
-        <div class="analysis-card">
-          <span class="analysis-card-icon">⚡</span>
-          <span class="analysis-card-value" id="anal-total">—</span>
-          <span class="analysis-card-label">Completados</span>
-        </div>
-        <div class="analysis-card">
-          <span class="analysis-card-icon">📈</span>
-          <span class="analysis-card-value" id="anal-vs-last">—</span>
-          <span class="analysis-card-label">vs semana ant.</span>
-        </div>
-      </div>
-
-      <h4 class="analysis-subtitle">Rendimiento por hábito</h4>
-      <div class="analysis-habits" id="analysis-habits"></div>
-
-      <div class="analysis-insight" id="analysis-insight"></div>
-    </div>
-  </div>
-
-  <footer class="hub-footer">
-    <span>S.A.O BACU — Bienestar</span>
-  </footer>
-</section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="main.js"></script>
