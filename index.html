@@ -84,10 +84,31 @@
     <button class="habits-back" id="habits-back" type="button" aria-label="Volver">
       <span aria-hidden="true">←</span>
     </button>
-    <h2 class="habits-title">Mis Hábitos</h2>
+    <h2 class="habits-title">Bienestar</h2>
     <span class="habits-week" id="habits-week"></span>
   </header>
 
+  <!-- ── TODAY'S FOCUS ── -->
+  <div class="today-focus" id="today-focus">
+    <div class="today-date" id="today-date"></div>
+    <div class="today-stats" id="today-stats">
+      <div class="today-stat" id="stat-done">
+        <span class="today-stat-num">0</span>
+        <span class="today-stat-label">Cumplidos</span>
+      </div>
+      <div class="today-stat today-stat--pending" id="stat-pending">
+        <span class="today-stat-num">0</span>
+        <span class="today-stat-label">Pendientes</span>
+      </div>
+      <div class="today-stat today-stat--missed" id="stat-missed">
+        <span class="today-stat-num">0</span>
+        <span class="today-stat-label">Fallados</span>
+      </div>
+    </div>
+    <p class="today-msg" id="today-msg"></p>
+  </div>
+
+  <!-- ── PROGRESS BAR ── -->
   <div class="habits-progress-wrap">
     <div class="habits-progress-bar">
       <div class="habits-progress-fill" id="habits-progress-fill"></div>
@@ -95,21 +116,57 @@
     <span class="habits-progress-text" id="habits-progress-text">0%</span>
   </div>
 
+  <!-- ── WEEK NAV ── -->
   <div class="habits-week-nav">
     <button class="habits-week-btn" id="week-prev" type="button" aria-label="Semana anterior">‹</button>
     <div class="habits-days" id="habits-days"></div>
     <button class="habits-week-btn" id="week-next" type="button" aria-label="Semana siguiente">›</button>
   </div>
 
+  <!-- ── HABIT LIST ── -->
   <ul class="habits-list" id="habits-list"></ul>
 
+  <!-- ── ADD HABIT ── -->
   <div class="habits-add-wrap">
     <input class="habits-input" id="habits-input" type="text" placeholder="Nuevo hábito…" maxlength="60" autocomplete="off">
     <button class="habits-add-btn" id="habits-add-btn" type="button">+</button>
   </div>
 
+  <!-- ── WEEKLY ANALYSIS ── -->
+  <div class="analysis-section" id="analysis-section">
+    <h3 class="analysis-title">Análisis Semanal</h3>
+
+    <div class="analysis-grid" id="analysis-grid">
+      <div class="analysis-card">
+        <span class="analysis-card-icon">📊</span>
+        <span class="analysis-card-value" id="anal-consistency">—</span>
+        <span class="analysis-card-label">Consistencia</span>
+      </div>
+      <div class="analysis-card">
+        <span class="analysis-card-icon">🏆</span>
+        <span class="analysis-card-value" id="anal-best-day">—</span>
+        <span class="analysis-card-label">Mejor día</span>
+      </div>
+      <div class="analysis-card">
+        <span class="analysis-card-icon">⚡</span>
+        <span class="analysis-card-value" id="anal-total">—</span>
+        <span class="analysis-card-label">Completados</span>
+      </div>
+      <div class="analysis-card">
+        <span class="analysis-card-icon">📈</span>
+        <span class="analysis-card-value" id="anal-vs-last">—</span>
+        <span class="analysis-card-label">vs semana ant.</span>
+      </div>
+    </div>
+
+    <h4 class="analysis-subtitle">Rendimiento por hábito</h4>
+    <div class="analysis-habits" id="analysis-habits"></div>
+
+    <div class="analysis-insight" id="analysis-insight"></div>
+  </div>
+
   <footer class="hub-footer">
-    <span>S.A.O BACU — Hábitos</span>
+    <span>S.A.O BACU — Bienestar</span>
   </footer>
 </section>
 
