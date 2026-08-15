@@ -306,6 +306,28 @@
 
   function todayStr() { return ds(new Date()); }
 
+  /* --- seed default habits on first visit --- */
+  const SEED_KEY = "bacu_habits_seeded";
+  if (!localStorage.getItem(SEED_KEY)) {
+    const defaultHabits = [
+      { id: "h01", name: "Dormir 7-9h (misma hora)", created: todayStr() },
+      { id: "h02", name: "3 comidas completas", created: todayStr() },
+      { id: "h03", name: "Tomar 2L de agua", created: todayStr() },
+      { id: "h04", name: "Ejercicio 30 min", created: todayStr() },
+      { id: "h05", name: "Meditar 10 min", created: todayStr() },
+      { id: "h06", name: "Leer 20 páginas", created: todayStr() },
+      { id: "h07", name: "Sin pantallas 1h antes de dormir", created: todayStr() },
+      { id: "h08", name: "Frutas y verduras en cada comida", created: todayStr() },
+      { id: "h09", name: "1h sin redes sociales (enfoque creativo)", created: todayStr() },
+      { id: "h10", name: "Journaling / Reflexión 5 min", created: todayStr() },
+    ];
+    // Only seed if user has no habits yet
+    if (loadHabits().length === 0) {
+      saveHabits(defaultHabits);
+    }
+    localStorage.setItem(SEED_KEY, "1");
+  }
+
   /* --- week calculation --- */
 
   function getWeekDates(offset) {
