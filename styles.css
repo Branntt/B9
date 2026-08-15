@@ -273,6 +273,368 @@ body {
   #content { padding-top: 0; padding-bottom: 64px; }
 }
 
+/* ---------- HABITS VIEW ---------- */
+
+.card--habits {
+  cursor: pointer;
+  font-family: var(--font-display);
+  border: 1px solid rgba(92, 176, 138, 0.25);
+  background: linear-gradient(155deg, rgba(62, 140, 111, 0.08), rgba(22, 52, 42, 0.12));
+}
+
+.card--habits:hover,
+.card--habits:focus-visible {
+  border-color: rgba(92, 176, 138, 0.5);
+  background: rgba(62, 140, 111, 0.12);
+}
+
+.habits-view {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--black);
+  overflow-y: auto;
+  overflow-x: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s var(--ease), visibility 0.4s var(--ease);
+  padding: 0 22px calc(32px + env(safe-area-inset-bottom));
+}
+
+.habits-view[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.habits-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 0 16px;
+  background: linear-gradient(to bottom, var(--black) 80%, transparent);
+}
+
+.habits-back {
+  background: none;
+  border: 1px solid rgba(245, 243, 237, 0.15);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  color: var(--green-bright);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.3s var(--ease), background 0.3s var(--ease);
+}
+
+.habits-back:hover,
+.habits-back:focus-visible {
+  border-color: var(--green-bright);
+  background: rgba(62, 140, 111, 0.1);
+}
+
+.habits-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(24px, 6vw, 32px);
+  letter-spacing: 0.04em;
+  margin: 0;
+  color: var(--white);
+  flex: 1;
+}
+
+.habits-week {
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--grey);
+  flex-shrink: 0;
+}
+
+/* Progress bar */
+.habits-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px auto 20px;
+  max-width: 520px;
+}
+
+.habits-progress-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(245, 243, 237, 0.08);
+  overflow: hidden;
+}
+
+.habits-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--green), var(--green-bright));
+  transition: width 0.5s var(--ease);
+}
+
+.habits-progress-text {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--green-bright);
+  min-width: 42px;
+  text-align: right;
+}
+
+/* Week navigation & day headers */
+.habits-week-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 24px;
+  max-width: 520px;
+}
+
+.habits-week-btn {
+  background: none;
+  border: 1px solid rgba(245, 243, 237, 0.12);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  color: var(--green-bright);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.3s var(--ease), background 0.3s var(--ease);
+}
+
+.habits-week-btn:hover { border-color: var(--green-bright); background: rgba(62,140,111,0.08); }
+
+.habits-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  flex: 1;
+}
+
+.habits-day-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.habits-day-name {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+.habits-day-num {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: rgba(245, 243, 237, 0.5);
+  letter-spacing: 0.02em;
+}
+
+.habits-day-col.is-today .habits-day-num {
+  color: var(--green-bright);
+  text-shadow: 0 0 10px rgba(92, 176, 138, 0.4);
+}
+
+.habits-day-col.is-today .habits-day-name {
+  color: var(--green-bright);
+}
+
+/* Habit list */
+.habits-list {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.habit-item {
+  background: rgba(245, 243, 237, 0.025);
+  border: 1px solid rgba(245, 243, 237, 0.08);
+  border-radius: 16px;
+  padding: 16px;
+  animation: habit-in 0.35s var(--ease) both;
+}
+
+@keyframes habit-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.habit-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.habit-name {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--white);
+  flex: 1;
+  letter-spacing: 0.01em;
+}
+
+.habit-streak {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--green-bright);
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.habit-delete {
+  background: none;
+  border: none;
+  color: rgba(245, 243, 237, 0.25);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.habit-delete:hover { color: #e85d5d; background: rgba(232, 93, 93, 0.1); }
+
+.habit-checks {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.habit-check {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1.5px solid rgba(245, 243, 237, 0.1);
+  background: rgba(245, 243, 237, 0.02);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: transparent;
+  transition: all 0.25s var(--ease);
+  position: relative;
+}
+
+.habit-check:hover {
+  border-color: rgba(92, 176, 138, 0.4);
+  background: rgba(62, 140, 111, 0.06);
+}
+
+.habit-check.is-today {
+  border-color: rgba(92, 176, 138, 0.35);
+  box-shadow: 0 0 8px rgba(92, 176, 138, 0.12);
+}
+
+.habit-check.checked {
+  border-color: var(--green);
+  background: rgba(62, 140, 111, 0.18);
+  color: var(--green-bright);
+}
+
+.habit-check.checked::after {
+  content: "✓";
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.habit-check.missed {
+  border-color: rgba(232, 93, 93, 0.25);
+  background: rgba(232, 93, 93, 0.06);
+}
+
+.habit-check.missed::after {
+  content: "✗";
+  color: rgba(232, 93, 93, 0.6);
+  font-size: 13px;
+}
+
+/* Add habit */
+.habits-add-wrap {
+  display: flex;
+  gap: 10px;
+  margin: 28px auto 20px;
+  max-width: 520px;
+}
+
+.habits-input {
+  flex: 1;
+  background: rgba(245, 243, 237, 0.04);
+  border: 1px solid rgba(245, 243, 237, 0.12);
+  border-radius: 999px;
+  padding: 12px 20px;
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s var(--ease);
+}
+
+.habits-input::placeholder { color: var(--grey); opacity: 0.6; }
+
+.habits-input:focus { border-color: var(--green); }
+
+.habits-add-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--green);
+  background: rgba(62, 140, 111, 0.12);
+  color: var(--green-bright);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.3s var(--ease), transform 0.2s var(--ease);
+}
+
+.habits-add-btn:hover { background: rgba(62, 140, 111, 0.25); }
+.habits-add-btn:active { transform: scale(0.92); }
+
+/* Empty state */
+.habits-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--grey);
+  font-family: var(--font-body);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+}
+
+.habits-empty-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  display: block;
+  opacity: 0.5;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

@@ -230,4 +230,293 @@
       card.style.setProperty("--py", `${((e.clientY - rect.top) / rect.height) * 100}%`);
     });
   });
+
+  /* ========== HABITS CHECKLIST ========== */
+
+  const HABITS_KEY = "bacu_habits";
+  const CHECKS_KEY = "bacu_checks";
+
+  const habitsView = document.getElementById("habits-view");
+  const btnHabits = document.getElementById("btn-habits");
+  const btnBack = document.getElementById("habits-back");
+  const habitsWeekLabel = document.getElementById("habits-week");
+  const habitsDaysEl = document.getElementById("habits-days");
+  const habitsList = document.getElementById("habits-list");
+  const habitsInput = document.getElementById("habits-input");
+  const habitsAddBtn = document.getElementById("habits-add-btn");
+  const progressFill = document.getElementById("habits-progress-fill");
+  const progressText = document.getElementById("habits-progress-text");
+  const weekPrev = document.getElementById("week-prev");
+  const weekNext = document.getElementById("week-next");
+
+  const DAY_NAMES = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
+  const MONTH_NAMES = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
+
+  let weekOffset = 0; // 0 = current week
+
+  /* --- data helpers --- */
+
+  function loadHabits() {
+    try { return JSON.parse(localStorage.getItem(HABITS_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function saveHabits(habits) {
+    localStorage.setItem(HABITS_KEY, JSON.stringify(habits));
+  }
+
+  function loadChecks() {
+    try { return JSON.parse(localStorage.getItem(CHECKS_KEY)) || {}; }
+    catch { return {}; }
+  }
+
+  function saveChecks(checks) {
+    localStorage.setItem(CHECKS_KEY, JSON.stringify(checks));
+  }
+
+  function checkKey(habitId, dateStr) {
+    return `${habitId}::${dateStr}`;
+  }
+
+  function dateStr(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function todayStr() {
+    return dateStr(new Date());
+  }
+
+  /* --- week calculation --- */
+
+  function getWeekDates(offset) {
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset + offset * 7);
+    monday.setHours(0, 0, 0, 0);
+
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  }
+
+  /* --- render --- */
+
+  function renderWeekHeader(days) {
+    const first = days[0];
+    const last = days[6];
+    const fMonth = MONTH_NAMES[first.getMonth()];
+    const lMonth = MONTH_NAMES[last.getMonth()];
+    const year = last.getFullYear();
+
+    if (fMonth === lMonth) {
+      habitsWeekLabel.textContent = `${first.getDate()}–${last.getDate()} ${fMonth} ${year}`;
+    } else {
+      habitsWeekLabel.textContent = `${first.getDate()} ${fMonth} – ${last.getDate()} ${lMonth} ${year}`;
+    }
+  }
+
+  function renderDayColumns(days) {
+    habitsDaysEl.innerHTML = "";
+    const today = todayStr();
+
+    days.forEach((d, i) => {
+      const col = document.createElement("div");
+      col.className = "habits-day-col";
+      if (dateStr(d) === today) col.classList.add("is-today");
+
+      const name = document.createElement("span");
+      name.className = "habits-day-name";
+      name.textContent = DAY_NAMES[i];
+
+      const num = document.createElement("span");
+      num.className = "habits-day-num";
+      num.textContent = d.getDate();
+
+      col.appendChild(name);
+      col.appendChild(num);
+      habitsDaysEl.appendChild(col);
+    });
+  }
+
+  function renderHabits() {
+    const habits = loadHabits();
+    const checks = loadChecks();
+    const days = getWeekDates(weekOffset);
+    const today = todayStr();
+
+    renderWeekHeader(days);
+    renderDayColumns(days);
+
+    habitsList.innerHTML = "";
+
+    if (habits.length === 0) {
+      habitsList.innerHTML = `
+        <li class="habits-empty">
+          <span class="habits-empty-icon">🌱</span>
+          Agrega tu primer hábito para empezar a trackear
+        </li>`;
+      progressFill.style.width = "0%";
+      progressText.textContent = "0%";
+      return;
+    }
+
+    let totalChecks = 0;
+    let totalPossible = 0;
+
+    habits.forEach((habit) => {
+      const li = document.createElement("li");
+      li.className = "habit-item";
+
+      // count streak
+      let streak = 0;
+      const streakDate = new Date();
+      // go back from yesterday (or today if checked) counting consecutive days
+      for (let s = 0; s < 365; s++) {
+        const sd = new Date(streakDate);
+        sd.setDate(streakDate.getDate() - s);
+        const key = checkKey(habit.id, dateStr(sd));
+        if (checks[key] === true) {
+          streak++;
+        } else if (s > 0) {
+          // day 0 (today) is optional, if not checked yet keep counting
+          break;
+        }
+      }
+
+      const top = document.createElement("div");
+      top.className = "habit-top";
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "habit-name";
+      nameEl.textContent = habit.name;
+
+      const streakEl = document.createElement("span");
+      streakEl.className = "habit-streak";
+      streakEl.textContent = streak > 0 ? `🔥 ${streak}d` : "";
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "habit-delete";
+      delBtn.type = "button";
+      delBtn.textContent = "✕";
+      delBtn.title = "Eliminar hábito";
+      delBtn.addEventListener("click", () => {
+        if (confirm(`¿Eliminar "${habit.name}"?`)) {
+          const h = loadHabits().filter((hb) => hb.id !== habit.id);
+          saveHabits(h);
+          renderHabits();
+        }
+      });
+
+      top.appendChild(nameEl);
+      top.appendChild(streakEl);
+      top.appendChild(delBtn);
+
+      const checksRow = document.createElement("div");
+      checksRow.className = "habit-checks";
+
+      days.forEach((d) => {
+        const ds = dateStr(d);
+        const key = checkKey(habit.id, ds);
+        const isChecked = checks[key] === true;
+        const isMissed = checks[key] === false;
+        const isToday = ds === today;
+        const isPast = ds < today;
+
+        const btn = document.createElement("button");
+        btn.className = "habit-check";
+        btn.type = "button";
+        if (isChecked) btn.classList.add("checked");
+        else if (isMissed) btn.classList.add("missed");
+        if (isToday) btn.classList.add("is-today");
+
+        // count for progress (only past days + today)
+        if (ds <= today) {
+          totalPossible++;
+          if (isChecked) totalChecks++;
+        }
+
+        btn.addEventListener("click", () => {
+          const c = loadChecks();
+          if (c[key] === true) {
+            // checked → missed
+            c[key] = false;
+          } else if (c[key] === false) {
+            // missed → unset
+            delete c[key];
+          } else {
+            // unset → checked
+            c[key] = true;
+          }
+          saveChecks(c);
+          renderHabits();
+        });
+
+        checksRow.appendChild(btn);
+      });
+
+      li.appendChild(top);
+      li.appendChild(checksRow);
+      habitsList.appendChild(li);
+    });
+
+    // update progress
+    const pct = totalPossible > 0 ? Math.round((totalChecks / totalPossible) * 100) : 0;
+    progressFill.style.width = `${pct}%`;
+    progressText.textContent = `${pct}%`;
+  }
+
+  /* --- add habit --- */
+
+  function addHabit() {
+    const name = habitsInput.value.trim();
+    if (!name) return;
+    const habits = loadHabits();
+    habits.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name,
+      created: todayStr(),
+    });
+    saveHabits(habits);
+    habitsInput.value = "";
+    renderHabits();
+    habitsInput.focus();
+  }
+
+  habitsAddBtn.addEventListener("click", addHabit);
+  habitsInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addHabit();
+  });
+
+  /* --- navigation --- */
+
+  function openHabits() {
+    weekOffset = 0;
+    renderHabits();
+    habitsView.setAttribute("aria-hidden", "false");
+    content.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeHabits() {
+    habitsView.setAttribute("aria-hidden", "true");
+    content.removeAttribute("aria-hidden");
+    document.body.style.overflow = "";
+  }
+
+  btnHabits.addEventListener("click", openHabits);
+  btnBack.addEventListener("click", closeHabits);
+
+  weekPrev.addEventListener("click", () => { weekOffset--; renderHabits(); });
+  weekNext.addEventListener("click", () => {
+    if (weekOffset < 0) { weekOffset++; renderHabits(); }
+  });
 })();

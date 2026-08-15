@@ -65,12 +65,53 @@
       <span class="card-label">TikTok</span>
       <span class="card-arrow" aria-hidden="true">↗</span>
     </a>
+
+    <button class="card card--habits" id="btn-habits" type="button">
+      <span class="card-label">Mis Hábitos</span>
+      <span class="card-sub">Checklist semanal</span>
+      <span class="card-arrow" aria-hidden="true">→</span>
+    </button>
   </nav>
 
   <footer class="hub-footer">
     <span>© 2026 BACU CREATIVE</span>
   </footer>
 </main>
+
+<!-- ============ HABITS VIEW ============ -->
+<section id="habits-view" class="habits-view" aria-hidden="true">
+  <header class="habits-header">
+    <button class="habits-back" id="habits-back" type="button" aria-label="Volver">
+      <span aria-hidden="true">←</span>
+    </button>
+    <h2 class="habits-title">Mis Hábitos</h2>
+    <span class="habits-week" id="habits-week"></span>
+  </header>
+
+  <div class="habits-progress-wrap">
+    <div class="habits-progress-bar">
+      <div class="habits-progress-fill" id="habits-progress-fill"></div>
+    </div>
+    <span class="habits-progress-text" id="habits-progress-text">0%</span>
+  </div>
+
+  <div class="habits-week-nav">
+    <button class="habits-week-btn" id="week-prev" type="button" aria-label="Semana anterior">‹</button>
+    <div class="habits-days" id="habits-days"></div>
+    <button class="habits-week-btn" id="week-next" type="button" aria-label="Semana siguiente">›</button>
+  </div>
+
+  <ul class="habits-list" id="habits-list"></ul>
+
+  <div class="habits-add-wrap">
+    <input class="habits-input" id="habits-input" type="text" placeholder="Nuevo hábito…" maxlength="60" autocomplete="off">
+    <button class="habits-add-btn" id="habits-add-btn" type="button">+</button>
+  </div>
+
+  <footer class="hub-footer">
+    <span>S.A.O BACU — Hábitos</span>
+  </footer>
+</section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="main.js"></script>
