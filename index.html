@@ -76,19 +76,20 @@
 
   <!-- Clientes Tab -->
   <div class="tab-content" id="tab-clientes">
-    <div class="clientes-header">
-      <div class="clientes-tabs">
-        <button class="cliente-tab-btn cliente-tab-btn--active" data-cliente-tab="gestion">Gestión</button>
-        <button class="cliente-tab-btn" data-cliente-tab="ideas">Ideas Sueltas</button>
-        <button class="cliente-tab-btn" data-cliente-tab="rodajes">Rodajes</button>
-        <button class="cliente-tab-btn" data-cliente-tab="horario">Horario</button>
-        <button class="cliente-tab-btn" data-cliente-tab="estadisticas">Estadísticas</button>
-      </div>
-      <button class="btn-action btn-action--add" id="btnAddCliente" title="Agregar cliente">+</button>
+    <div class="clientes-tabs">
+      <button class="cliente-tab-btn cliente-tab-btn--active" data-cliente-tab="gestion">Gestión</button>
+      <button class="cliente-tab-btn" data-cliente-tab="ideas">Ideas Sueltas</button>
+      <button class="cliente-tab-btn" data-cliente-tab="rodajes">Rodajes</button>
+      <button class="cliente-tab-btn" data-cliente-tab="horario">Horario</button>
+      <button class="cliente-tab-btn" data-cliente-tab="estadisticas">Estadísticas</button>
     </div>
 
     <!-- Gestión Tab -->
     <div class="cliente-content cliente-content--active" id="cliente-gestion">
+      <div class="cliente-gestion-header">
+        <h3>Gestión de Clientes</h3>
+        <button class="btn-action btn-action--add" id="btnAddCliente" title="Agregar cliente">+</button>
+      </div>
       <div class="clientes-list" id="clientesList"></div>
       <p class="empty-state">No hay clientes. Haz clic en <strong>+</strong> para agregar.</p>
     </div>

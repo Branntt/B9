@@ -328,18 +328,27 @@ body {
 
 /* ---------- CLIENTES TAB ---------- */
 
-.clientes-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
 .clientes-tabs {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(245, 243, 237, 0.1);
+}
+
+.cliente-gestion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cliente-gestion-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--white);
 }
 
 .cliente-tab-btn {
