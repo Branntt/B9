@@ -238,12 +238,14 @@
       this.estadisticas = this.loadEstadisticas();
       this.ideas = this.loadIdeas();
       this.rodajes = this.loadRodajes();
+      this.gestionFilter = "todos";
       this.init();
     }
 
     init() {
       this.setupTabNavigation();
       this.setupClienteTabNavigation();
+      this.setupGestionSubmenu();
       this.setupAddClienteButton();
       this.render();
     }
@@ -274,6 +276,19 @@
           clienteContents.forEach((c) => c.classList.remove("cliente-content--active"));
           btn.classList.add("cliente-tab-btn--active");
           document.getElementById(`cliente-${tabName}`).classList.add("cliente-content--active");
+        });
+      });
+    }
+
+    setupGestionSubmenu() {
+      const submenuBtns = document.querySelectorAll(".gestion-submenu-btn");
+
+      submenuBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          this.gestionFilter = btn.dataset.gestion;
+          submenuBtns.forEach((b) => b.classList.remove("gestion-submenu-btn--active"));
+          btn.classList.add("gestion-submenu-btn--active");
+          this.renderClientesList();
         });
       });
     }
@@ -377,7 +392,15 @@
 
     renderClientesList() {
       const list = document.getElementById("clientesList");
-      list.innerHTML = this.clientes.map((cliente) => `
+      let filtered = this.clientes;
+
+      if (this.gestionFilter === "ideas") {
+        filtered = this.clientes.filter((c) => c.tipo === "ideas");
+      } else if (this.gestionFilter === "rodajes") {
+        filtered = this.clientes.filter((c) => c.tipo === "rodajes");
+      }
+
+      list.innerHTML = filtered.map((cliente) => `
         <div class="cliente-card">
           <div class="cliente-info">
             <h4>${cliente.nombre}</h4>
@@ -390,7 +413,7 @@
         </div>
       `).join("");
 
-      if (this.clientes.length === 0) {
+      if (filtered.length === 0) {
         list.innerHTML = '<p class="empty-state">No hay clientes. Haz clic en <strong>+</strong> para agregar.</p>';
       }
     }
