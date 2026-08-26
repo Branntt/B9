@@ -39,147 +39,33 @@
     <p class="hub-tagline">Qué energía. Gracias por tu tiempo.</p>
   </header>
 
-  <nav class="tabs-nav">
-    <button class="tab-btn active" data-tab="links">ENLACES</button>
-    <button class="tab-btn" data-tab="finanzas">FINANZAS</button>
+  <nav class="links" aria-label="Enlaces">
+    <a class="card card--featured" href="https://branntt.github.io/brant-portfolio/" target="_blank" rel="noopener">
+      <span class="card-label">Portafolio</span>
+      <span class="card-sub">Ver trabajo completo</span>
+      <span class="card-arrow" aria-hidden="true">↗</span>
+    </a>
+
+    <a class="card" href="https://www.instagram.com/bacu_creative/" target="_blank" rel="noopener">
+      <span class="card-label">@Bacu_creative</span>
+      <span class="card-arrow" aria-hidden="true">↗</span>
+    </a>
+
+    <a class="card" href="https://www.instagram.com/branntt._/" target="_blank" rel="noopener">
+      <span class="card-label">@Branntt._</span>
+      <span class="card-arrow" aria-hidden="true">↗</span>
+    </a>
+
+    <a class="card" id="link-novena" href="https://www.instagram.com/novenacrew_" target="_blank" rel="noopener">
+      <span class="card-label">@novenacrew_</span>
+      <span class="card-arrow" aria-hidden="true">↗</span>
+    </a>
+
+    <a class="card" href="https://www.tiktok.com/@branntt" target="_blank" rel="noopener">
+      <span class="card-label">TikTok</span>
+      <span class="card-arrow" aria-hidden="true">↗</span>
+    </a>
   </nav>
-
-  <!-- TAB: ENLACES -->
-  <section id="tab-links" class="tab-content active">
-    <nav class="links" aria-label="Enlaces">
-      <a class="card card--featured" href="https://branntt.github.io/brant-portfolio/" target="_blank" rel="noopener">
-        <span class="card-label">Portafolio</span>
-        <span class="card-sub">Ver trabajo completo</span>
-        <span class="card-arrow" aria-hidden="true">↗</span>
-      </a>
-
-      <a class="card" href="https://www.instagram.com/bacu_creative/" target="_blank" rel="noopener">
-        <span class="card-label">@Bacu_creative</span>
-        <span class="card-arrow" aria-hidden="true">↗</span>
-      </a>
-
-      <a class="card" href="https://www.instagram.com/branntt._/" target="_blank" rel="noopener">
-        <span class="card-label">@Branntt._</span>
-        <span class="card-arrow" aria-hidden="true">↗</span>
-      </a>
-
-      <a class="card" id="link-novena" href="https://www.instagram.com/novenacrew_" target="_blank" rel="noopener">
-        <span class="card-label">@novenacrew_</span>
-        <span class="card-arrow" aria-hidden="true">↗</span>
-      </a>
-
-      <a class="card" href="https://www.tiktok.com/@branntt" target="_blank" rel="noopener">
-        <span class="card-label">TikTok</span>
-        <span class="card-arrow" aria-hidden="true">↗</span>
-      </a>
-    </nav>
-  </section>
-
-  <!-- TAB: FINANZAS -->
-  <section id="tab-finanzas" class="tab-content">
-    <div class="finance-dashboard">
-
-      <!-- SALDOS ACTUALES -->
-      <div class="balance-section">
-        <h2 class="section-title">Saldos</h2>
-        <div class="balance-grid">
-          <div class="balance-card">
-            <span class="balance-label">Bancolombia</span>
-            <span class="balance-amount">$<span id="balance-bancolombia">27938</span></span>
-          </div>
-          <div class="balance-card">
-            <span class="balance-label">Nequi</span>
-            <span class="balance-amount">$<span id="balance-nequi">622262</span></span>
-          </div>
-          <div class="balance-card balance-card--total">
-            <span class="balance-label">Total</span>
-            <span class="balance-amount">$<span id="balance-total">650200</span></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUSCRIPCIONES MENSUALES -->
-      <div class="subscriptions-section">
-        <h2 class="section-title">Suscripciones Mensuales</h2>
-        <div class="subscriptions-list" id="subscriptions-list"></div>
-      </div>
-
-      <!-- GASTOS DEL MES -->
-      <div class="expenses-section">
-        <div class="expenses-header">
-          <h2 class="section-title">Gastos del Mes</h2>
-          <button class="btn-add-expense" id="btn-add-expense">+ Agregar Gasto</button>
-        </div>
-        <div class="expenses-list" id="expenses-list"></div>
-      </div>
-
-      <!-- MODAL AGREGAR GASTO -->
-      <div class="modal" id="modal-expense">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>Nuevo Gasto</h3>
-            <button class="modal-close" id="modal-close">&times;</button>
-          </div>
-          <form id="form-expense" class="form-expense">
-            <div class="form-group">
-              <label for="expense-date">Fecha</label>
-              <input type="date" id="expense-date" required>
-            </div>
-            <div class="form-group">
-              <label for="expense-category">Categoría</label>
-              <select id="expense-category" required>
-                <option value="">Seleccionar...</option>
-                <option value="Datos">Datos/Internet</option>
-                <option value="Arriendo">Arriendo</option>
-                <option value="Mercado">Mercado</option>
-                <option value="CapCut">CapCut</option>
-                <option value="Claude">Claude</option>
-                <option value="Spotify">Spotify</option>
-                <option value="Lightroom">Lightroom</option>
-                <option value="Otro">Otro</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="expense-amount">Monto</label>
-              <input type="number" id="expense-amount" step="0.01" required>
-            </div>
-            <div class="form-group">
-              <label for="expense-account">Cuenta</label>
-              <select id="expense-account" required>
-                <option value="Bancolombia">Bancolombia</option>
-                <option value="Nequi">Nequi</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="expense-description">Descripción (opcional)</label>
-              <input type="text" id="expense-description" placeholder="Detalles del gasto...">
-            </div>
-            <button type="submit" class="btn-submit">Guardar Gasto</button>
-          </form>
-        </div>
-      </div>
-
-      <!-- RESUMEN DEL MES -->
-      <div class="summary-section">
-        <h2 class="section-title">Resumen</h2>
-        <div class="summary-stats">
-          <div class="stat-card">
-            <span class="stat-label">Gastos Este Mes</span>
-            <span class="stat-amount">$<span id="stat-total-expenses">0</span></span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Suscripciones</span>
-            <span class="stat-amount">$<span id="stat-subscriptions">0</span></span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Otros Gastos</span>
-            <span class="stat-amount">$<span id="stat-other-expenses">0</span></span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
 
   <footer class="hub-footer">
     <span>© 2026 BACU CREATIVE</span>
