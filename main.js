@@ -231,3 +231,194 @@
     });
   });
 })();
+
+/* ---------- FINANCE TAB SYSTEM ---------- */
+
+(() => {
+  "use strict";
+
+  // Default suscripciones mensuales
+  const DEFAULT_SUBSCRIPTIONS = [
+    { name: "Datos/Internet", amount: 0 },
+    { name: "Arriendo", amount: 0 },
+    { name: "Mercado", amount: 0 },
+    { name: "CapCut", amount: 0 },
+    { name: "Claude", amount: 0 },
+    { name: "Spotify", amount: 0 },
+    { name: "Lightroom", amount: 0 },
+  ];
+
+  // Default saldos
+  const DEFAULT_BALANCES = {
+    Bancolombia: 27938,
+    Nequi: 622262,
+  };
+
+  // Storage keys
+  const STORAGE_KEYS = {
+    balances: "finanzas_balances",
+    expenses: "finanzas_expenses",
+    subscriptions: "finanzas_subscriptions",
+  };
+
+  // Initialize data
+  let balances = JSON.parse(localStorage.getItem(STORAGE_KEYS.balances)) || DEFAULT_BALANCES;
+  let expenses = JSON.parse(localStorage.getItem(STORAGE_KEYS.expenses)) || [];
+  let subscriptions = JSON.parse(localStorage.getItem(STORAGE_KEYS.subscriptions)) || DEFAULT_SUBSCRIPTIONS;
+
+  // Tab navigation
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  const tabContents = document.querySelectorAll(".tab-content");
+
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tabName = btn.dataset.tab;
+
+      // Remove active class from all buttons and contents
+      tabBtns.forEach((b) => b.classList.remove("active"));
+      tabContents.forEach((c) => c.classList.remove("active"));
+
+      // Add active class to clicked button and corresponding content
+      btn.classList.add("active");
+      document.getElementById(`tab-${tabName}`).classList.add("active");
+    });
+  });
+
+  // Modal functionality
+  const modal = document.getElementById("modal-expense");
+  const btnAddExpense = document.getElementById("btn-add-expense");
+  const modalClose = document.getElementById("modal-close");
+  const formExpense = document.getElementById("form-expense");
+
+  btnAddExpense.addEventListener("click", () => {
+    modal.classList.add("open");
+    // Set today's date as default
+    document.getElementById("expense-date").valueAsDate = new Date();
+  });
+
+  modalClose.addEventListener("click", () => {
+    modal.classList.remove("open");
+    formExpense.reset();
+  });
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.remove("open");
+      formExpense.reset();
+    }
+  });
+
+  // Form submission
+  formExpense.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const expense = {
+      id: Date.now(),
+      date: document.getElementById("expense-date").value,
+      category: document.getElementById("expense-category").value,
+      amount: parseFloat(document.getElementById("expense-amount").value),
+      account: document.getElementById("expense-account").value,
+      description: document.getElementById("expense-description").value,
+    };
+
+    // Add expense to array
+    expenses.push(expense);
+    localStorage.setItem(STORAGE_KEYS.expenses, JSON.stringify(expenses));
+
+    // Update balance
+    balances[expense.account] -= expense.amount;
+    localStorage.setItem(STORAGE_KEYS.balances, JSON.stringify(balances));
+
+    // Reset form and close modal
+    formExpense.reset();
+    modal.classList.remove("open");
+
+    // Update UI
+    renderFinances();
+  });
+
+  // Render all finance components
+  function renderFinances() {
+    updateBalances();
+    renderSubscriptions();
+    renderExpenses();
+    updateSummary();
+  }
+
+  // Update balance display
+  function updateBalances() {
+    document.getElementById("balance-bancolombia").textContent = balances.Bancolombia.toLocaleString();
+    document.getElementById("balance-nequi").textContent = balances.Nequi.toLocaleString();
+    const total = balances.Bancolombia + balances.Nequi;
+    document.getElementById("balance-total").textContent = total.toLocaleString();
+  }
+
+  // Render subscriptions
+  function renderSubscriptions() {
+    const listContainer = document.getElementById("subscriptions-list");
+    listContainer.innerHTML = "";
+
+    subscriptions.forEach((sub) => {
+      const item = document.createElement("div");
+      item.className = "subscription-item";
+      item.innerHTML = `
+        <span class="subscription-name">${sub.name}</span>
+        <span class="subscription-price">$${sub.amount.toLocaleString()}</span>
+      `;
+      listContainer.appendChild(item);
+    });
+  }
+
+  // Render expenses
+  function renderExpenses() {
+    const listContainer = document.getElementById("expenses-list");
+    listContainer.innerHTML = "";
+
+    // Sort expenses by date (newest first)
+    const sorted = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (sorted.length === 0) {
+      listContainer.innerHTML = '<p style="text-align: center; color: var(--grey); padding: 20px; font-size: 13px;">No hay gastos registrados</p>';
+      return;
+    }
+
+    sorted.forEach((exp) => {
+      const date = new Date(exp.date);
+      const formattedDate = date.toLocaleDateString("es-CO", { day: "numeric", month: "short" });
+
+      const item = document.createElement("div");
+      item.className = "expense-item";
+      item.innerHTML = `
+        <div class="expense-info">
+          <span class="expense-date">${formattedDate}</span>
+          <span class="expense-category">${exp.category}</span>
+          <span class="expense-account">${exp.account}</span>
+        </div>
+        <span class="expense-amount">$${exp.amount.toLocaleString()}</span>
+      `;
+      listContainer.appendChild(item);
+    });
+  }
+
+  // Update summary
+  function updateSummary() {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    const monthExpenses = expenses.filter((exp) => {
+      const expDate = new Date(exp.date);
+      return expDate.getMonth() === currentMonth && expDate.getFullYear() === currentYear;
+    });
+
+    const totalExpenses = monthExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const subscriptionTotal = subscriptions.reduce((sum, sub) => sum + sub.amount, 0);
+    const otherExpenses = totalExpenses - subscriptionTotal;
+
+    document.getElementById("stat-total-expenses").textContent = totalExpenses.toLocaleString();
+    document.getElementById("stat-subscriptions").textContent = subscriptionTotal.toLocaleString();
+    document.getElementById("stat-other-expenses").textContent = Math.max(0, otherExpenses).toLocaleString();
+  }
+
+  // Initial render
+  renderFinances();
+})();
