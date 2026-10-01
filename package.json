@@ -1,0 +1,20 @@
+{
+  "name": "bacu-creative",
+  "version": "1.0.0",
+  "description": "BACU CREATIVE — Dirección creativa, producción audiovisual y storytelling.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "dev:mobile": "node server.js --mobile"
+  },
+  "keywords": ["bacu", "creative"],
+  "author": "Branntt",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "chokidar": "^3.5.3"
+  }
+}
